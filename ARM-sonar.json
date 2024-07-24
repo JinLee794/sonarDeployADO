@@ -9,6 +9,10 @@
     }
   },
   "parameters": {
+    "acrName": {
+      "type": "string",
+      "defaultValue": "[format('acrdevsecops{0}', resourcegroup().tags.LabInstance)]"
+    },
     "containerInstanceName": {
       "type": "string",
       "defaultValue": "[format('sonarq-devsecops-{0}', resourcegroup().tags.LabInstance)]"
@@ -48,7 +52,7 @@
           {
             "name": "[parameters('containerInstanceName')]",
             "properties": {
-              "image": "sonarqube",
+              "image": "[concat(parameters('acrName'), '.azurecr.io/sonarqube:latest')]",
               "ports": [
                 {
                   "protocol": "TCP",
@@ -63,6 +67,12 @@
                 }
               }
             }
+          }
+        ],
+        "imageRegistryCredentials": [
+          {
+            "server": "[concat(parameters('acrName'), '.azurecr.io')]",
+            "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'sonar-aci-uai')]"
           }
         ],
         "restartPolicy": "Always",
