@@ -1,0 +1,83 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.6.18.56646",
+      "templateHash": "1417122466541465793"
+    }
+  },
+  "parameters": {
+    "containerInstanceName": {
+      "type": "string",
+      "defaultValue": "[format('sonarq-devsecops-{0}', resourcegroup().tags.LabInstance)]"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "sonar-aci-uai",
+      "location": "eastus"
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2021-04-01",
+      "name": "[guid(resourceGroup().id, 'acrRoleAssignment')]",
+      "properties": {
+        "roleDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
+        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'sonar-aci-uai'), '2023-01-31').principalId]",
+        "scope": "[resourceGroup().id]"
+      }
+    },
+    {
+      "type": "Microsoft.ContainerInstance/containerGroups",
+      "apiVersion": "2021-10-01",
+      "name": "[parameters('containerInstanceName')]",
+      "location": "eastus",
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'sonar-aci-uai')]": {}
+        }
+      },
+      "properties": {
+        "sku": "Standard",
+        "containers": [
+          {
+            "name": "[parameters('containerInstanceName')]",
+            "properties": {
+              "image": "sonarqube",
+              "ports": [
+                {
+                  "protocol": "TCP",
+                  "port": 9000
+                }
+              ],
+              "environmentVariables": [],
+              "resources": {
+                "requests": {
+                  "memoryInGB": 4,
+                  "cpu": 2
+                }
+              }
+            }
+          }
+        ],
+        "restartPolicy": "Always",
+        "ipAddress": {
+          "ports": [
+            {
+              "protocol": "TCP",
+              "port": 9000
+            }
+          ],
+          "type": "Public",
+          "dnsNameLabel": "[parameters('containerInstanceName')]"
+        },
+        "osType": "Linux"
+      }
+    }
+  ]
+}
