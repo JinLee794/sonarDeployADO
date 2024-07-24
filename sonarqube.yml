@@ -9,19 +9,19 @@ variables:
 steps:
 - task: AzureCLI@2
   inputs:
-  azureSubscription: 'Azure-Service-Connection-Development'
-  scriptType: 'bash'
-  scriptLocation: 'inlineScript'
-  inlineScript: |
-    echo 'listing azure resources'
-    az account show
-    az resource list --subscription $(az account show --query 'id' --output tsv)
-    az account set --subscription $(az account show --query 'id' --output tsv)
-    docker pull sonarqube
-    sudo docker build -t $(ContainerRegistry).azurecr.io/sonarqube:$(Build.BuildId) .
-    az acr login -n $(ContainerRegistry)
-    docker push $(ContainerRegistry).azurecr.io/sonarqube:$(Build.BuildId)
-  addSpnToEnvironment: true
+    azureSubscription: 'Azure-Service-Connection-Development'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      echo 'listing azure resources'
+      az account show
+      az resource list --subscription $(az account show --query 'id' --output tsv)
+      az account set --subscription $(az account show --query 'id' --output tsv)
+      docker pull sonarqube
+      sudo docker build -t $(ContainerRegistry).azurecr.io/sonarqube:$(Build.BuildId) .
+      az acr login -n $(ContainerRegistry)
+      docker push $(ContainerRegistry).azurecr.io/sonarqube:$(Build.BuildId)
+    addSpnToEnvironment: true
 
 - task: AzureCLI@2
   inputs:
